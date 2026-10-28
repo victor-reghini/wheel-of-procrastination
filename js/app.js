@@ -33,6 +33,11 @@ class ProcrastinationApp {
       taskColorInput: document.getElementById('taskColorInput'),
       colorPresets: document.getElementById('colorPresets'),
       weightPreview: document.getElementById('weightPreview'),
+      langDropdown: document.getElementById('langDropdown'),
+      langDropdownBtn: document.getElementById('langDropdownBtn'),
+      langDropdownMenu: document.getElementById('langDropdownMenu'),
+      currentLangFlag: document.getElementById('currentLangFlag'),
+      currentLangCode: document.getElementById('currentLangCode'),
       langSelect: document.getElementById('langSelect'),
       soundToggleBtn: document.getElementById('soundToggleBtn'),
       themeToggleBtn: document.getElementById('themeToggleBtn'),
@@ -82,14 +87,6 @@ class ProcrastinationApp {
     this.tasks = Storage.getTasks();
     this.settings = Storage.getSettings();
 
-    // Configura idioma
-    const initialLang = I18n.init(this.settings.lang);
-    this.settings.lang = initialLang;
-    if (this.dom.langSelect) {
-      this.dom.langSelect.value = initialLang;
-    }
-    this.applyLanguage(initialLang);
-
     // Configura tema claro/escuro
     this.applyTheme(this.settings.theme || 'dark');
 
@@ -105,12 +102,12 @@ class ProcrastinationApp {
       onSpinStart: () => this.handleSpinStart(),
       onSpinEnd: (winner) => this.handleSpinEnd(winner)
     });
-
     this.wheel.setTasks(this.tasks);
 
-    // Renderiza lista
-    this.renderTaskList();
-    this.updateFormPreview();
+    // Configura idioma e aplica traduções (atualiza DOM, formulário, preview e lista)
+    const initialLang = I18n.init(this.settings.lang);
+    this.settings.lang = initialLang;
+    this.applyLanguage(initialLang);
 
     // Eventos
     this.bindEvents();
@@ -122,13 +119,36 @@ class ProcrastinationApp {
   }
 
   bindEvents() {
-    // Seletor de idioma
+    // Seletor de idioma customizado com bandeiras
+    if (this.dom.langDropdownBtn) {
+      this.dom.langDropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = this.dom.langDropdown.classList.toggle('open');
+        this.dom.langDropdownBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    if (this.dom.langDropdownMenu) {
+      this.dom.langDropdownMenu.querySelectorAll('.lang-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const newLang = btn.dataset.lang;
+          this.setLanguage(newLang);
+          this.closeLangDropdown();
+        });
+      });
+    }
+
+    // Fecha menu de idiomas ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (this.dom.langDropdown && !this.dom.langDropdown.contains(e.target)) {
+        this.closeLangDropdown();
+      }
+    });
+
+    // Seletor de idioma nativo (fallback)
     if (this.dom.langSelect) {
       this.dom.langSelect.addEventListener('change', (e) => {
-        const newLang = e.target.value;
-        this.settings.lang = newLang;
-        Storage.saveSettings(this.settings);
-        this.applyLanguage(newLang);
+        this.setLanguage(e.target.value);
       });
     }
 
@@ -143,6 +163,7 @@ class ProcrastinationApp {
       } else if (e.code === 'Escape') {
         this.closeAllModals();
         this.closeSidebarOnMobile();
+        this.closeLangDropdown();
       }
     });
 
@@ -305,6 +326,21 @@ class ProcrastinationApp {
     }
   }
 
+  closeLangDropdown() {
+    if (this.dom.langDropdown) {
+      this.dom.langDropdown.classList.remove('open');
+      if (this.dom.langDropdownBtn) {
+        this.dom.langDropdownBtn.setAttribute('aria-expanded', 'false');
+      }
+    }
+  }
+
+  setLanguage(lang) {
+    this.settings.lang = lang;
+    Storage.saveSettings(this.settings);
+    this.applyLanguage(lang);
+  }
+
   applyLanguage(lang) {
     I18n.setLanguage(lang);
 
@@ -313,6 +349,26 @@ class ProcrastinationApp {
     document.title = I18n.t('pageTitle');
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', I18n.t('pageDescription'));
+
+    // Atualiza botão do seletor com bandeira e código do idioma ativo
+    if (this.dom.currentLangFlag) {
+      this.dom.currentLangFlag.innerHTML = I18n.getFlagSvg(lang);
+    }
+    if (this.dom.currentLangCode) {
+      this.dom.currentLangCode.textContent = lang.toUpperCase();
+    }
+    if (this.dom.langSelect) {
+      this.dom.langSelect.value = lang;
+    }
+
+    // Atualiza estado ativo nos botões do dropdown
+    if (this.dom.langDropdownMenu) {
+      this.dom.langDropdownMenu.querySelectorAll('.lang-option-btn').forEach(btn => {
+        const isActive = btn.dataset.lang === lang;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+      });
+    }
 
     // Atualiza elementos com data-i18n
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -541,7 +597,7 @@ class ProcrastinationApp {
       return;
     }
 
-    const weights = this.wheel.getSliceWeights();
+    const weights = this.wheel ? this.wheel.getSliceWeights() : [];
     const weightMap = new Map();
     weights.forEach(w => weightMap.set(w.id, w.percent));
 
@@ -821,6 +877,7 @@ class ProcrastinationApp {
     this.closeModal(this.dom.articleModal);
     this.closeEditModal();
     this.closeWinnerModal();
+    this.closeLangDropdown();
   }
 
   isAnyModalOpen() {

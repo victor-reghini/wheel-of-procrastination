@@ -2,6 +2,14 @@
  * i18n.js - Sistema de Internacionalização (Português, English, Español, Italiano, Français)
  */
 
+export const FLAG_SVGS = {
+  pt: `<svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#009b3a"/><polygon points="10,1.8 18.2,7 10,12.2 1.8,7" fill="#fedf00"/><circle cx="10" cy="7" r="3.2" fill="#002776"/><path d="M7 6.8 Q10 5.4 13 7.8" stroke="#ffffff" stroke-width="0.7" fill="none"/></svg>`,
+  en: `<svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#b22234"/><path d="M0,2.15 h20 M0,4.3 h20 M0,6.46 h20 M0,8.61 h20 M0,10.76 h20 M0,12.92 h20" stroke="#ffffff" stroke-width="1.08"/><rect width="8.5" height="7.5" fill="#3c3b6e"/><circle cx="2.5" cy="2.2" r="0.65" fill="#ffffff"/><circle cx="6" cy="2.2" r="0.65" fill="#ffffff"/><circle cx="4.25" cy="3.8" r="0.65" fill="#ffffff"/><circle cx="2.5" cy="5.4" r="0.65" fill="#ffffff"/><circle cx="6" cy="5.4" r="0.65" fill="#ffffff"/></svg>`,
+  es: `<svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#aa151b"/><rect y="3.5" width="20" height="7" fill="#f1bf00"/><rect x="3.8" y="5.2" width="2.2" height="3" rx="0.5" fill="#aa151b"/></svg>`,
+  it: `<svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#ffffff"/><rect width="6.66" height="14" fill="#009246"/><rect x="13.33" width="6.67" height="14" fill="#ce2b37"/></svg>`,
+  fr: `<svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#ffffff"/><rect width="6.66" height="14" fill="#0055a4"/><rect x="13.33" width="6.67" height="14" fill="#ef4135"/></svg>`
+};
+
 export const TRANSLATIONS = {
   pt: {
     pageTitle: "Roleta Anti-Procrastinação | Sorteie e Vença Suas Tarefas",
@@ -591,6 +599,10 @@ export class I18nManager {
 
   getDefaultTasks() {
     return DEFAULT_TASKS_BY_LANG[this.currentLang] || DEFAULT_TASKS_BY_LANG['pt'];
+  }
+
+  getFlagSvg(lang = this.currentLang) {
+    return FLAG_SVGS[lang] || FLAG_SVGS['pt'];
   }
 }
 

@@ -99,14 +99,62 @@
       </div>
 
       <div class="header-actions">
-        <!-- Seletor de Idioma -->
-        <div class="lang-select-wrap" title="Selecionar Idioma / Select Language">
-          <svg class="lang-globe-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          <select id="langSelect" class="lang-select" aria-label="Selecione o idioma / Select language">
+        <!-- Seletor de Idioma com Bandeiras -->
+        <div class="lang-dropdown" id="langDropdown">
+          <button type="button" id="langDropdownBtn" class="lang-dropdown-btn" aria-haspopup="listbox" aria-expanded="false" title="Selecionar Idioma / Select Language">
+            <span id="currentLangFlag" class="lang-flag-current">
+              <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#009b3a"/><polygon points="10,1.8 18.2,7 10,12.2 1.8,7" fill="#fedf00"/><circle cx="10" cy="7" r="3.2" fill="#002776"/><path d="M7 6.8 Q10 5.4 13 7.8" stroke="#ffffff" stroke-width="0.7" fill="none"/></svg>
+            </span>
+            <span id="currentLangCode" class="lang-code-current">PT</span>
+            <svg class="lang-chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div id="langDropdownMenu" class="lang-dropdown-menu" role="listbox" aria-label="Lista de idiomas">
+            <button type="button" class="lang-option-btn active" data-lang="pt" role="option" aria-selected="true">
+              <span class="flag-icon-wrap">
+                <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#009b3a"/><polygon points="10,1.8 18.2,7 10,12.2 1.8,7" fill="#fedf00"/><circle cx="10" cy="7" r="3.2" fill="#002776"/><path d="M7 6.8 Q10 5.4 13 7.8" stroke="#ffffff" stroke-width="0.7" fill="none"/></svg>
+              </span>
+              <span class="lang-name">Português</span>
+              <span class="lang-code-badge">PT</span>
+            </button>
+
+            <button type="button" class="lang-option-btn" data-lang="en" role="option" aria-selected="false">
+              <span class="flag-icon-wrap">
+                <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#b22234"/><path d="M0,2.15 h20 M0,4.3 h20 M0,6.46 h20 M0,8.61 h20 M0,10.76 h20 M0,12.92 h20" stroke="#ffffff" stroke-width="1.08"/><rect width="8.5" height="7.5" fill="#3c3b6e"/><circle cx="2.5" cy="2.2" r="0.65" fill="#ffffff"/><circle cx="6" cy="2.2" r="0.65" fill="#ffffff"/><circle cx="4.25" cy="3.8" r="0.65" fill="#ffffff"/><circle cx="2.5" cy="5.4" r="0.65" fill="#ffffff"/><circle cx="6" cy="5.4" r="0.65" fill="#ffffff"/></svg>
+              </span>
+              <span class="lang-name">English</span>
+              <span class="lang-code-badge">EN</span>
+            </button>
+
+            <button type="button" class="lang-option-btn" data-lang="es" role="option" aria-selected="false">
+              <span class="flag-icon-wrap">
+                <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#aa151b"/><rect y="3.5" width="20" height="7" fill="#f1bf00"/><rect x="3.8" y="5.2" width="2.2" height="3" rx="0.5" fill="#aa151b"/></svg>
+              </span>
+              <span class="lang-name">Español</span>
+              <span class="lang-code-badge">ES</span>
+            </button>
+
+            <button type="button" class="lang-option-btn" data-lang="it" role="option" aria-selected="false">
+              <span class="flag-icon-wrap">
+                <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#ffffff"/><rect width="6.66" height="14" fill="#009246"/><rect x="13.33" width="6.67" height="14" fill="#ce2b37"/></svg>
+              </span>
+              <span class="lang-name">Italiano</span>
+              <span class="lang-code-badge">IT</span>
+            </button>
+
+            <button type="button" class="lang-option-btn" data-lang="fr" role="option" aria-selected="false">
+              <span class="flag-icon-wrap">
+                <svg class="flag-icon" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#ffffff"/><rect width="6.66" height="14" fill="#0055a4"/><rect x="13.33" width="6.67" height="14" fill="#ef4135"/></svg>
+              </span>
+              <span class="lang-name">Français</span>
+              <span class="lang-code-badge">FR</span>
+            </button>
+          </div>
+
+          <!-- Select para compatibilidade e fallback -->
+          <select id="langSelect" class="lang-native-hidden" aria-hidden="true" tabindex="-1">
             <option value="pt">PT</option>
             <option value="en">EN</option>
             <option value="es">ES</option>
