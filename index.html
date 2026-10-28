@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Roleta Anti-Procrastinação | Sorteie e Vença Suas Tarefas</title>
+  <meta name="description" content="Elimine a paralisia de escolha e a procrastinação sorteando suas tarefas em uma roleta inteligente com fatias proporcionais a prioridade e dificuldade.">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Canvas Fullscreen para Efeitos de Confetes e Fogos -->
+  <canvas id="fxCanvas" class="fx-canvas"></canvas>
+
+  <!-- Backdrop para Drawer Mobile -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+  <!-- Cabeçalho Principal -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>Roleta Anti-Procrastinação</h1>
+          <span class="brand-subtitle">Decisão sem paralisia mental</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Alternador de Tema Claro / Escuro -->
+        <button id="themeToggleBtn" class="btn btn-secondary btn-icon" title="Alternar entre modo claro e escuro" aria-label="Alternar tema">
+          <span class="theme-icon-dark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </span>
+          <span class="theme-icon-light" style="display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+          <span class="btn-text">Tema</span>
+        </button>
+
+        <button id="articleModalBtn" class="btn btn-secondary btn-icon" title="Entenda a ciência da procrastinação e estratégias">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span class="btn-text">Guia</span>
+        </button>
+
+        <button id="soundToggleBtn" class="btn btn-secondary btn-icon" title="Ativar ou desativar efeitos sonoros">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <span class="btn-text">Som Ativo</span>
+        </button>
+
+        <!-- Botão mobile para abrir gaveta lateral de tarefas -->
+        <button id="sidebarToggleBtn" class="btn btn-primary mobile-only" aria-label="Abrir lista de tarefas">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span>Tarefas</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout Principal -->
+  <main class="app-layout">
+
+    <!-- Seção da Roleta (Esquerda / Centro) -->
+    <section class="wheel-section">
+      <div class="wheel-wrapper">
+        <!-- Container que sofre o zoom cinemático -->
+        <div id="wheelArena" class="wheel-arena">
+          <canvas id="wheelCanvas" width="460" height="460"></canvas>
+        </div>
+      </div>
+
+      <div class="wheel-controls">
+        <button id="spinBtn" class="btn-spin" title="Girar roleta (Espaço)">
+          <svg class="spin-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+          <span>GIRAR ROLETA</span>
+        </button>
+        <div class="spin-hint">
+          <kbd class="desktop-only">Barra de Espaço</kbd>
+          <span>Fatia = <strong>Prioridade ÷ Dificuldade</strong>. Tarefas urgentes e rápidas têm fatias maiores.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sidebar de Gerenciamento de Tarefas (Direita no Desktop / Gaveta no Mobile) -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title-wrap">
+          <h2>Lista de Tarefas</h2>
+          <span id="taskCountBadge" class="task-badge">0 ativas</span>
+        </div>
+        <div class="sidebar-header-btns">
+          <button id="resetTasksBtn" class="btn-text-action" title="Restaurar lista de tarefas sugeridas">
+            Restaurar Sugestões
+          </button>
+          <button id="sidebarCloseBtn" class="btn-icon mobile-only" aria-label="Fechar lista de tarefas">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulário de Nova Tarefa (Colapsável) -->
+      <div class="add-task-box">
+        <button type="button" id="toggleAddTaskBtn" class="btn-toggle-add-task" aria-expanded="false" title="Clique para abrir ou fechar o formulário de nova atividade">
+          <span class="toggle-btn-left">
+            <svg class="toggle-plus-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Nova Atividade</span>
+          </span>
+          <span class="toggle-chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+
+        <form id="addTaskForm" class="add-task-form is-collapsed">
+          <div class="form-group">
+            <label for="taskTitleInput">O que você precisa fazer?</label>
+            <input
+              type="text"
+              id="taskTitleInput"
+              class="form-control"
+              placeholder="Ex: Fazer relatório, Estudar 30 min..."
+              required
+              maxlength="70"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="taskDescInput">Descrição (opcional)</label>
+            <textarea
+              id="taskDescInput"
+              class="form-control"
+              placeholder="Detalhes, passos ou anotações para a atividade..."
+              rows="2"
+              maxlength="180"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="taskPrioritySelect">
+                Prioridade (1 a 5)
+                <span class="label-tip" title="Aumenta as chances na roleta">Maior chance</span>
+              </label>
+              <select id="taskPrioritySelect" class="form-control">
+                <option value="1">1 - Baixa</option>
+                <option value="2">2 - Moderada</option>
+                <option value="3" selected>3 - Importante</option>
+                <option value="4">4 - Muito Alta</option>
+                <option value="5">5 - Urgente / Crítica</option>
+              </select>
+            </div>
+
+            <div class="form-group col">
+              <label for="taskDifficultySelect">
+                Dificuldade (1 a 5)
+                <span class="label-tip" title="Diminui a fatia para adiar o que é pesado">Fatia menor</span>
+              </label>
+              <select id="taskDifficultySelect" class="form-control">
+                <option value="1">1 - Muito Fácil (2 min)</option>
+                <option value="2">2 - Fácil</option>
+                <option value="3" selected>3 - Média</option>
+                <option value="4">4 - Difícil</option>
+                <option value="5">5 - Extrema</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Seletor de Cores -->
+          <div class="form-group">
+            <label>Cor da Fatia</label>
+            <div class="color-picker-row">
+              <div id="colorPresets" class="color-presets">
+                <span class="color-chip active" data-color="#10b981" style="background:#10b981;"></span>
+                <span class="color-chip" data-color="#06b6d4" style="background:#06b6d4;"></span>
+                <span class="color-chip" data-color="#3b82f6" style="background:#3b82f6;"></span>
+                <span class="color-chip" data-color="#8b5cf6" style="background:#8b5cf6;"></span>
+                <span class="color-chip" data-color="#ec4899" style="background:#ec4899;"></span>
+                <span class="color-chip" data-color="#f59e0b" style="background:#f59e0b;"></span>
+                <span class="color-chip" data-color="#ef4444" style="background:#ef4444;"></span>
+                <span class="color-chip" data-color="#14b8a6" style="background:#14b8a6;"></span>
+              </div>
+              <input type="color" id="taskColorInput" class="custom-color-input" value="#10b981" title="Cor personalizada">
+            </div>
+          </div>
+
+          <!-- Prévia da Razão P/D -->
+          <div id="weightPreview" class="weight-preview-note"></div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span>Incluir na Roleta</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Listagem de Tarefas Ativas -->
+      <div class="tasks-scroll-container">
+        <div id="taskList" class="task-list"></div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- MODAL 1: Artigo Educativo sobre Procrastinação (Aberto no Início) -->
+  <div id="articleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="articleTitle">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-badge">Ciência da Produtividade</div>
+        <h2 id="articleTitle">Como Vencer a Procrastinação e Assumir o Controle</h2>
+        <button id="closeArticleModalBtn" class="modal-close-icon" aria-label="Fechar artigo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body article-content">
+        <div class="article-intro-card">
+          <p>
+            <strong>A verdade libertadora:</strong> Procrastinar não é preguiça nem falta de caráter. 
+            Estudos neurocientíficos mostram que a procrastinação é uma <strong>estratégia disfuncional de regulação emocional</strong>. 
+            Seu cérebro enxerga a tarefa pendente como uma fonte de estresse, ansiedade, tédio ou medo do fracasso, e busca alívio imediato refugiando-se em dopamina rápida (redes sociais, vídeos, organizar coisas sem urgência).
+          </p>
+        </div>
+
+        <div class="article-grid">
+          <div class="article-card">
+            <div class="article-card-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <h3>1. A Regra dos 2 Minutos</h3>
+            <p>
+              Se a atividade sorteada puder ser feita em até dois minutos, faça-a <strong>imediatamente</strong> sem pensar. 
+              Para atividades longas, aplique a versão adaptada: <em>"Vou fazer apenas os primeiros 2 minutos desta tarefa"</em>. O atrito de iniciar é o maior obstáculo; uma vez em movimento, a inércia joga a seu favor.
+            </p>
+          </div>
+
+          <div class="article-card">
+            <div class="article-card-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <h3>2. Micro-Passos (Chunking)</h3>
+            <p>
+              Tarefas gigantes como <em>"Fazer o relatório semestral"</em> paralisam o cérebro. 
+              Reduza a tarefa a um micro-passo simples: <em>"Abrir o documento em branco e escrever o título"</em>. 
+              A sensação de progresso ativa o circuito de recompensa dopaminérgico saudável.
+            </p>
+          </div>
+
+          <div class="article-card">
+            <div class="article-card-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
+            </div>
+            <h3>3. Elimine a Paralisia de Escolha</h3>
+            <p>
+              Quando você tem várias coisas pendentes, seu cérebro gasta energia avaliando qual escolher primeiro, gerando fadiga decisória. 
+              <strong>A Roleta tira o peso da decisão das suas costas.</strong> Ao terceirizar a escolha para o algoritmo ponderado, você pula direto da hesitação para a ação.
+            </p>
+          </div>
+
+          <div class="article-card">
+            <div class="article-card-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="13" r="8"></circle>
+                <path d="M12 9v4l2 2"></path>
+                <path d="M5 3L2 6"></path>
+                <path d="M22 6l-3-3"></path>
+                <path d="M12 2v3"></path>
+              </svg>
+            </div>
+            <h3>4. O Bloco Pomodoro (25 Minutos)</h3>
+            <p>
+              Comprometa-se a trabalhar 25 minutos com cronômetro sem nenhuma notificação ou aba paralela aberta. 
+              Saber que haverá uma pausa de 5 minutos relaxa a ansiedade cerebral. Nosso modal sorteado inclui um temporizador Pomodoro integrado para você começar imediatamente.
+            </p>
+          </div>
+        </div>
+
+        <div class="article-quote">
+          <blockquote>
+            "Você não precisa querer fazer algo para começar a fazer. A motivação é o resultado da ação, não o pré-requisito."
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <label class="remember-choice">
+          <input type="checkbox" id="dontShowArticleCheckbox">
+          <span>Não exibir este guia automaticamente nas próximas visitas</span>
+        </label>
+        <button id="startAppFromArticleBtn" class="btn btn-primary">
+          <span>Entendido! Vamos Girar a Roleta</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Resultado do Sorteio da Roleta (Comemoração & Próxima Ação) -->
+  <div id="winnerModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
+    <div class="modal-dialog modal-winner">
+      <div class="modal-header winner-header">
+        <div class="celebration-badge">ATIVIDADE SORTEADA</div>
+        <button id="closeWinnerModalBtn" class="modal-close-icon" aria-label="Fechar modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body winner-body">
+        <h2 id="winnerTitle" class="winner-task-title">Título da Tarefa Sorteada</h2>
+        <p id="winnerDescription" class="winner-task-desc" style="display: none;"></p>
+
+        <div class="winner-stats-row">
+          <span id="winnerPriorityBadge" class="stat-pill priority-pill">Prioridade: 4/5</span>
+          <span id="winnerDifficultyBadge" class="stat-pill difficulty-pill">Dificuldade: 2/5</span>
+          <span id="winnerOddsBadge" class="stat-pill odds-pill">Chance: 18.5%</span>
+        </div>
+
+        <!-- Dica anti-procrastinação contextual -->
+        <div id="winnerStrategyTip" class="strategy-tip-box">
+          <!-- Preenchido dinamicamente via JS -->
+        </div>
+
+        <!-- Temporizador Pomodoro Integrado -->
+        <div class="winner-pomodoro-box">
+          <div class="pomodoro-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Bloco de Foco sem Distrações:</span>
+          </div>
+          <div class="pomodoro-controls">
+            <span id="pomodoroTimerDisplay" class="pomodoro-digits">25:00</span>
+            <button id="pomodoroToggleBtn" class="btn btn-secondary btn-sm">
+              Iniciar Foco (25 min)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer winner-footer">
+        <button id="completeTaskBtn" class="btn btn-success" title="Remove esta tarefa da lista pois você vai concluí-la agora!">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Concluir Tarefa</span>
+        </button>
+        <button id="spinAgainBtn" class="btn btn-secondary" title="Sortear outra atividade">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+          </svg>
+          <span>Girar Novamente</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Editar Atividade -->
+  <div id="editTaskModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <h2 id="editModalTitle">Editar Atividade</h2>
+        <button id="closeEditModalBtn" class="modal-close-icon" aria-label="Fechar edição">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="editTaskForm">
+        <div class="modal-body edit-modal-body">
+          <input type="hidden" id="editTaskId">
+          <div class="form-group">
+            <label for="editTaskTitle">Título da Atividade</label>
+            <input type="text" id="editTaskTitle" class="form-control" required maxlength="70">
+          </div>
+
+          <div class="form-group">
+            <label for="editTaskDesc">Descrição (opcional)</label>
+            <textarea id="editTaskDesc" class="form-control" rows="3" maxlength="180" placeholder="Detalhes, passos ou anotações..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="editTaskPriority">
+                Prioridade (1 a 5)
+                <span class="label-tip">Maior chance</span>
+              </label>
+              <select id="editTaskPriority" class="form-control">
+                <option value="1">1 - Baixa</option>
+                <option value="2">2 - Moderada</option>
+                <option value="3">3 - Importante</option>
+                <option value="4">4 - Muito Alta</option>
+                <option value="5">5 - Urgente / Crítica</option>
+              </select>
+            </div>
+
+            <div class="form-group col">
+              <label for="editTaskDifficulty">
+                Dificuldade (1 a 5)
+                <span class="label-tip">Fatia menor</span>
+              </label>
+              <select id="editTaskDifficulty" class="form-control">
+                <option value="1">1 - Muito Fácil (2 min)</option>
+                <option value="2">2 - Fácil</option>
+                <option value="3">3 - Média</option>
+                <option value="4">4 - Difícil</option>
+                <option value="5">5 - Extrema</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editTaskColor">Cor da Fatia</label>
+            <div class="color-picker-row">
+              <input type="color" id="editTaskColor" class="custom-color-input" value="#3b82f6" title="Cor na roleta">
+              <span class="label-tip">Personalize a cor exibida na roleta</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
