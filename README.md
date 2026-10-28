@@ -71,13 +71,28 @@ Acesse no navegador:
 
 ---
 
+## Monetização com Google AdSense
+
+O projeto já possui um slot de anúncio responsivo integrado logo abaixo dos controles da roleta (`.ad-container` no arquivo `index.html`).
+
+Para ativar os anúncios reais:
+1. Publique o site em um domínio público (ex: GitHub Pages, Vercel ou domínio próprio).
+2. Cadastre o domínio no [Google AdSense](https://adsense.google.com).
+3. Insira o script do AdSense na tag `<head>` de `index.html`:
+   ```html
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-SEU_ID_AQUI" crossorigin="anonymous"></script>
+   ```
+4. Substitua o bloco placeholder dentro de `#footerAdSlot` pelo snippet `<ins class="adsbygoogle" ...>` gerado na sua conta.
+
+---
+
 ## Estrutura de Arquivos
 
 ```text
 wheel-of-procrastination/
-├── index.html         # Marcação semântica e modais
+├── index.html         # Marcação semântica, modais e slot de anúncios
 ├── css/
-│   └── style.css      # Sistema de design, dark theme e responsividade
+│   └── style.css      # Sistema de design, dark/light theme, layout e anúncios
 ├── js/
 │   ├── app.js         # Controlador principal e eventos da interface
 │   ├── wheel.js       # Motor da roleta, física e animação de zoom
