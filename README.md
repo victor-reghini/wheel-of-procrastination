@@ -20,6 +20,18 @@ $$\text{Probabilidade (\%)} = \left(\frac{\text{Peso}_i}{\sum \text{Pesos}}\righ
 
 ## Recursos
 
+- **Suporte Multilíngue (i18n)**: 5 idiomas disponíveis com comutação instantânea e persistência em `localStorage`:
+  - Português (`pt-BR`)
+  - English (`en-US`)
+  - Español (`es-ES`)
+  - Italiano (`it-IT`)
+  - Français (`fr-FR`)
+  - Inclui listas de tarefas sugeridas, dicas psicológicas e modais adaptados em cada língua.
+- **Otimização Avançada para Motores de Busca (SEO)**:
+  - Meta tags completas de indexação, canonical URL e tags `hreflang` para pesquisas internacionais no Google.
+  - Cartões de compartilhamento social OpenGraph e Twitter Card.
+  - Dados estruturados JSON-LD Schema.org (`WebApplication`).
+  - Arquivos `robots.txt` e `sitemap.xml` prontos para rastreamento.
 - **Modo Claro e Modo Escuro**: Alternância de tema com persistência em `localStorage`.
 - **Interface Limpa com Ícones Vetoriais SVG**: Tipografia nítida e ausência de emojis genéricos.
 - **Roleta em Canvas 2D**: Renderização nítida em alta densidade de pixels, ponteiro com física de impacto e clique mecânico de catraca.
@@ -90,11 +102,14 @@ Para ativar os anúncios reais:
 
 ```text
 wheel-of-procrastination/
-├── index.html         # Marcação semântica, modais e slot de anúncios
+├── index.html         # Marcação semântica, meta tags SEO, JSON-LD e modais
+├── robots.txt         # Diretrizes de rastreamento para motores de busca
+├── sitemap.xml        # Mapa do site com links alternativos hreflang
 ├── css/
-│   └── style.css      # Sistema de design, dark/light theme, layout e anúncios
+│   └── style.css      # Sistema de design, temas claro/escuro e responsividade
 ├── js/
 │   ├── app.js         # Controlador principal e eventos da interface
+│   ├── i18n.js        # Dicionários de tradução (PT, EN, ES, IT, FR)
 │   ├── wheel.js       # Motor da roleta, física e animação de zoom
 │   ├── fx.js          # Simulador de partículas de confetes e fogos
 │   ├── sound.js       # Síntese sonora procedural via Web Audio API

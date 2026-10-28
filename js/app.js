@@ -6,6 +6,7 @@ import { Storage, DEFAULT_TASKS } from './storage.js';
 import { Sound } from './sound.js';
 import { FX } from './fx.js';
 import { WheelOfProcrastination } from './wheel.js';
+import { I18n } from './i18n.js';
 
 class ProcrastinationApp {
   constructor() {
@@ -32,6 +33,7 @@ class ProcrastinationApp {
       taskColorInput: document.getElementById('taskColorInput'),
       colorPresets: document.getElementById('colorPresets'),
       weightPreview: document.getElementById('weightPreview'),
+      langSelect: document.getElementById('langSelect'),
       soundToggleBtn: document.getElementById('soundToggleBtn'),
       themeToggleBtn: document.getElementById('themeToggleBtn'),
       articleModalBtn: document.getElementById('articleModalBtn'),
@@ -80,6 +82,14 @@ class ProcrastinationApp {
     this.tasks = Storage.getTasks();
     this.settings = Storage.getSettings();
 
+    // Configura idioma
+    const initialLang = I18n.init(this.settings.lang);
+    this.settings.lang = initialLang;
+    if (this.dom.langSelect) {
+      this.dom.langSelect.value = initialLang;
+    }
+    this.applyLanguage(initialLang);
+
     // Configura tema claro/escuro
     this.applyTheme(this.settings.theme || 'dark');
 
@@ -112,6 +122,16 @@ class ProcrastinationApp {
   }
 
   bindEvents() {
+    // Seletor de idioma
+    if (this.dom.langSelect) {
+      this.dom.langSelect.addEventListener('change', (e) => {
+        const newLang = e.target.value;
+        this.settings.lang = newLang;
+        Storage.saveSettings(this.settings);
+        this.applyLanguage(newLang);
+      });
+    }
+
     // Giro da roleta
     this.dom.spinBtn.addEventListener('click', () => this.spin());
 
@@ -222,8 +242,8 @@ class ProcrastinationApp {
     // Resetar para tarefas padrão
     if (this.dom.resetTasksBtn) {
       this.dom.resetTasksBtn.addEventListener('click', () => {
-        if (confirm('Deseja restaurar as tarefas padrão sugeridas? Suas tarefas personalizadas serão redefinidas.')) {
-          this.tasks = Storage.resetToDefault();
+        if (confirm(I18n.t('restoreConfirm'))) {
+          this.tasks = Storage.resetToDefault(I18n.getDefaultTasks());
           this.wheel.setTasks(this.tasks);
           this.renderTaskList();
         }
@@ -285,6 +305,80 @@ class ProcrastinationApp {
     }
   }
 
+  applyLanguage(lang) {
+    I18n.setLanguage(lang);
+
+    // Atributo lang no HTML e tags SEO
+    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang;
+    document.title = I18n.t('pageTitle');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', I18n.t('pageDescription'));
+
+    // Atualiza elementos com data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = I18n.t(key);
+      if (val !== undefined && val !== null) {
+        if (typeof val === 'string' && (val.includes('<') || val.includes('&'))) {
+          el.innerHTML = val;
+        } else {
+          el.textContent = val;
+        }
+      }
+    });
+
+    // Atualiza placeholders com data-i18n-placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      const val = I18n.t(key);
+      if (val) el.placeholder = val;
+    });
+
+    // Atualiza titles com data-i18n-title
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      const key = el.getAttribute('data-i18n-title');
+      const val = I18n.t(key);
+      if (val) el.title = val;
+    });
+
+    // Atualiza opções dos selects de Prioridade e Dificuldade
+    this.updateSelectOptions();
+
+    // Atualiza botão de som
+    this.updateSoundButtonUI();
+
+    // Atualiza preview de razão P/D
+    this.updateFormPreview();
+
+    // Atualiza listagem de tarefas para refletir novos textos de badges e placeholders
+    this.renderTaskList();
+
+    // Se o modal vencedor estiver aberto, reatualiza
+    if (this.currentWinner && this.dom.winnerModal && this.dom.winnerModal.classList.contains('active')) {
+      this.showWinnerModal(this.currentWinner);
+    }
+  }
+
+  updateSelectOptions() {
+    const pLabels = I18n.t('priorityLabels') || {};
+    const dLabels = I18n.t('difficultyLabels') || {};
+
+    const updateSelect = (selectEl, labelsMap) => {
+      if (!selectEl) return;
+      Array.from(selectEl.options).forEach(opt => {
+        const val = opt.value;
+        if (labelsMap[val]) {
+          opt.textContent = `${val} - ${labelsMap[val]}`;
+        }
+      });
+    };
+
+    updateSelect(this.dom.taskPrioritySelect, pLabels);
+    updateSelect(this.dom.taskDifficultySelect, dLabels);
+    updateSelect(this.dom.editTaskPriority, pLabels);
+    updateSelect(this.dom.editTaskDifficulty, dLabels);
+  }
+
   updateSoundButtonUI() {
     if (this.settings.soundEnabled) {
       this.dom.soundToggleBtn.innerHTML = `
@@ -292,7 +386,7 @@ class ProcrastinationApp {
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
         </svg>
-        <span class="btn-text">Som Ativo</span>
+        <span class="btn-text" data-i18n="soundOn">${I18n.t('soundOn')}</span>
       `;
       this.dom.soundToggleBtn.classList.remove('muted');
     } else {
@@ -302,7 +396,7 @@ class ProcrastinationApp {
           <line x1="23" y1="9" x2="17" y2="15"></line>
           <line x1="17" y1="9" x2="23" y2="15"></line>
         </svg>
-        <span class="btn-text">Mudo</span>
+        <span class="btn-text" data-i18n="soundMuted">${I18n.t('soundMuted')}</span>
       `;
       this.dom.soundToggleBtn.classList.add('muted');
     }
@@ -315,11 +409,11 @@ class ProcrastinationApp {
 
     let explanation = '';
     if (p >= 4 && d <= 2) {
-      explanation = 'Alta Prioridade + Baixa Dificuldade = Fatia muito ampla. Excelente para começar rápido.';
+      explanation = I18n.t('ratioNoteHigh');
     } else if (p <= 2 && d >= 4) {
-      explanation = 'Baixa Prioridade + Alta Dificuldade = Fatia reduzida. O cérebro tende a postergar tarefas pesadas.';
+      explanation = I18n.t('ratioNoteLow');
     } else {
-      explanation = `Razão P/D: ${weight}. Fatias se ajustam proporcionalmente ao restante das atividades.`;
+      explanation = I18n.t('ratioNoteNormal', { weight });
     }
 
     this.dom.weightPreview.textContent = explanation;
@@ -435,13 +529,13 @@ class ProcrastinationApp {
 
   renderTaskList() {
     const activeTasks = this.tasks.filter(t => t.enabled !== false);
-    this.dom.taskCountBadge.textContent = `${activeTasks.length}/${this.tasks.length} ativas`;
+    this.dom.taskCountBadge.textContent = `${activeTasks.length}/${this.tasks.length} ${I18n.t('tasksActive')}`;
 
     if (this.tasks.length === 0) {
       this.dom.taskList.innerHTML = `
         <div class="empty-list-placeholder">
-          <p>Nenhuma tarefa cadastrada.</p>
-          <small>Adicione tarefas acima para vê-las na roleta!</small>
+          <p>${I18n.t('emptyListTitle')}</p>
+          <small>${I18n.t('emptyListSubtitle')}</small>
         </div>
       `;
       return;
@@ -460,26 +554,26 @@ class ProcrastinationApp {
       return `
         <div class="task-card ${isEnabled ? '' : 'task-disabled'}" data-id="${task.id}">
           <div class="task-card-header">
-            <label class="task-checkbox-wrap" title="${isEnabled ? 'Desativar da roleta' : 'Ativar na roleta'}">
+            <label class="task-checkbox-wrap" title="${isEnabled ? I18n.t('deactivateTooltip') : I18n.t('activateTooltip')}">
               <input type="checkbox" class="task-toggle-checkbox" ${isEnabled ? 'checked' : ''} data-id="${task.id}">
               <span class="custom-checkbox"></span>
             </label>
 
             <span class="task-title" title="${this.escapeHtml(task.title)}">${this.escapeHtml(task.title)}</span>
 
-            <div class="task-color-wrap" title="Alterar cor da fatia">
+            <div class="task-color-wrap" title="${I18n.t('changeColorTooltip')}">
               <input type="color" class="task-color-picker" value="${task.color}" data-id="${task.id}">
               <span class="task-color-preview" style="background-color: ${task.color}"></span>
             </div>
 
             <div class="task-item-actions">
-              <button type="button" class="task-edit-btn" title="Editar atividade" data-id="${task.id}">
+              <button type="button" class="task-edit-btn" title="${I18n.t('editTooltip')}" data-id="${task.id}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                 </svg>
               </button>
-              <button type="button" class="task-delete-btn" title="Remover tarefa" data-id="${task.id}">
+              <button type="button" class="task-delete-btn" title="${I18n.t('deleteTooltip')}" data-id="${task.id}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -491,13 +585,13 @@ class ProcrastinationApp {
           ${task.description ? `<p class="task-desc" title="${this.escapeHtml(task.description)}">${this.escapeHtml(task.description)}</p>` : ''}
 
           <div class="task-card-meta">
-            <span class="badge priority-badge" title="Prioridade: quanto maior, maior a fatia">
-              P: ${p}/5
+            <span class="badge priority-badge" title="${I18n.t('priorityTip')}">
+              ${I18n.t('priorityBadge')} ${p}/5
             </span>
-            <span class="badge difficulty-badge" title="Dificuldade: quanto maior, menor a fatia">
-              D: ${d}/5
+            <span class="badge difficulty-badge" title="${I18n.t('difficultyTip')}">
+              ${I18n.t('difficultyBadge')} ${d}/5
             </span>
-            <span class="badge odds-badge" title="Probabilidade matemática de sorteio">
+            <span class="badge odds-badge" title="${I18n.t('chanceBadge')}">
               ${isEnabled ? percent.toFixed(1) + '%' : '0%'}
             </span>
           </div>
@@ -536,7 +630,7 @@ class ProcrastinationApp {
     if (this.wheel.isSpinning) return;
     const activeTasks = this.tasks.filter(t => t.enabled !== false);
     if (activeTasks.length === 0) {
-      alert('Ative pelo menos uma tarefa na lista para poder girar a roleta!');
+      alert(I18n.t('noActiveTasksAlert'));
       return;
     }
 
@@ -557,7 +651,7 @@ class ProcrastinationApp {
         <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
         <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
       </svg>
-      <span>GIRANDO...</span>
+      <span data-i18n="spinningBtn">${I18n.t('spinningBtn')}</span>
     `;
     this.closeSidebarOnMobile();
   }
@@ -571,7 +665,7 @@ class ProcrastinationApp {
         <circle cx="12" cy="12" r="6"></circle>
         <circle cx="12" cy="12" r="2"></circle>
       </svg>
-      <span>GIRAR ROLETA</span>
+      <span data-i18n="spinBtn">${I18n.t('spinBtn')}</span>
     `;
 
     if (!winner) return;
@@ -600,9 +694,11 @@ class ProcrastinationApp {
       this.dom.winnerDescription.style.display = 'none';
     }
 
-    this.dom.winnerPriorityBadge.textContent = `Prioridade: ${p}/5 (${this.getPriorityLabel(p)})`;
-    this.dom.winnerDifficultyBadge.textContent = `Dificuldade: ${d}/5 (${this.getDifficultyLabel(d)})`;
-    this.dom.winnerOddsBadge.textContent = `Probabilidade: ${percent.toFixed(1)}%`;
+    const pLabel = this.getPriorityLabel(p);
+    const dLabel = this.getDifficultyLabel(d);
+    this.dom.winnerPriorityBadge.textContent = `${I18n.t('priorityLabel').split(' ')[0]}: ${p}/5 (${pLabel})`;
+    this.dom.winnerDifficultyBadge.textContent = `${I18n.t('difficultyLabel').split(' ')[0]}: ${d}/5 (${dLabel})`;
+    this.dom.winnerOddsBadge.textContent = `${I18n.t('chanceBadge')} ${percent.toFixed(1)}%`;
 
     // Dica psicológica personalizada contra procrastinação
     this.dom.winnerStrategyTip.innerHTML = this.getAntiProcrastinationTip(p, d);
@@ -621,45 +717,32 @@ class ProcrastinationApp {
   }
 
   getPriorityLabel(p) {
-    const labels = {
-      1: 'Baixa',
-      2: 'Moderada',
-      3: 'Importante',
-      4: 'Muito Alta',
-      5: 'Urgente / Crítica'
-    };
+    const labels = I18n.t('priorityLabels') || {};
     return labels[p] || 'Importante';
   }
 
   getDifficultyLabel(d) {
-    const labels = {
-      1: 'Muito Fácil (2 min)',
-      2: 'Fácil',
-      3: 'Média',
-      4: 'Exigente / Complexa',
-      5: 'Extrema'
-    };
+    const labels = I18n.t('difficultyLabels') || {};
     return labels[d] || 'Média';
   }
 
   getAntiProcrastinationTip(priority, difficulty) {
+    const tips = I18n.t('tips') || {};
     if (difficulty === 1) {
       return `
-        <strong>Regra dos 2 Minutos:</strong> Como essa tarefa tem dificuldade muito baixa, não pense nem anote.
-        Levante-se e termine-a agora mesmo antes de fazer qualquer outra coisa!
+        <strong>${tips.twoMinRuleTitle || 'Regra dos 2 Minutos:'}</strong> ${tips.twoMinRuleText || ''}
       `;
     } else if (difficulty >= 4) {
       return `
-        <strong>Técnica do Queijo Suíço (Micro-Passo):</strong> Essa tarefa é pesada e gera resistência inicial.
-        Não tente resolver tudo de uma vez. Faça apenas o <em>primeiro parágrafo</em> ou os <em>primeiros 5 minutos</em>. Entrar em ação dissolve a ansiedade.
+        <strong>${tips.chunkingTitle || 'Micro-Passo:'}</strong> ${tips.chunkingText || ''}
       `;
     } else if (priority === 5) {
       return `
-        <strong>Contagem Regressiva 5-4-3-2-1:</strong> Prioridade máxima! Não espere estar com vontade. A motivação surge após a ação. Respire fundo, conte regressivamente e comece agora.
+        <strong>${tips.countdownTitle || 'Contagem Regressiva:'}</strong> ${tips.countdownText || ''}
       `;
     } else {
       return `
-        <strong>Bloco de Foco por 25 Minutos:</strong> Coloque o celular no modo não perturbe. O sorteio já eliminou a fadiga de escolha. Aproveite o momento para avançar.
+        <strong>${tips.focusBlockTitle || 'Bloco de Foco:'}</strong> ${tips.focusBlockText || ''}
       `;
     }
   }
@@ -668,11 +751,11 @@ class ProcrastinationApp {
   togglePomodoro() {
     if (this.isPomodoroRunning) {
       this.stopPomodoro();
-      this.dom.pomodoroToggleBtn.textContent = 'Continuar Pomodoro';
+      this.dom.pomodoroToggleBtn.textContent = I18n.t('resumeFocusBtn');
       this.dom.pomodoroToggleBtn.classList.remove('running');
     } else {
       this.isPomodoroRunning = true;
-      this.dom.pomodoroToggleBtn.textContent = 'Pausar Foco';
+      this.dom.pomodoroToggleBtn.textContent = I18n.t('pauseFocusBtn');
       this.dom.pomodoroToggleBtn.classList.add('running');
 
       this.pomodoroInterval = setInterval(() => {
@@ -682,7 +765,7 @@ class ProcrastinationApp {
         if (this.pomodoroSecondsLeft <= 0) {
           this.stopPomodoro();
           Sound.playFanfare();
-          alert('Parabéns! Seus 25 minutos de foco terminaram. Faça uma pausa de 5 minutos!');
+          alert(I18n.t('pomodoroDoneAlert'));
         }
       }, 1000);
     }
@@ -700,7 +783,7 @@ class ProcrastinationApp {
     this.stopPomodoro();
     this.pomodoroSecondsLeft = 25 * 60;
     this.updatePomodoroDisplay();
-    this.dom.pomodoroToggleBtn.textContent = 'Iniciar Foco (25 min)';
+    this.dom.pomodoroToggleBtn.textContent = I18n.t('startFocusBtn');
     this.dom.pomodoroToggleBtn.classList.remove('running');
   }
 

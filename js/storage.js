@@ -117,9 +117,9 @@ export const Storage = {
   getSettings() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      return data ? JSON.parse(data) : { soundEnabled: true, hideWelcomeModal: false, theme: 'dark' };
+      return data ? JSON.parse(data) : { soundEnabled: true, hideWelcomeModal: false, theme: 'dark', lang: 'pt' };
     } catch (e) {
-      return { soundEnabled: true, hideWelcomeModal: false, theme: 'dark' };
+      return { soundEnabled: true, hideWelcomeModal: false, theme: 'dark', lang: 'pt' };
     }
   },
 
@@ -131,8 +131,8 @@ export const Storage = {
     }
   },
 
-  resetToDefault() {
-    this.saveTasks(DEFAULT_TASKS);
-    return [...DEFAULT_TASKS];
+  resetToDefault(tasks = DEFAULT_TASKS) {
+    this.saveTasks(tasks);
+    return [...tasks];
   }
 };
